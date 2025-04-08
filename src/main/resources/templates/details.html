@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Booking Details</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+	<div class="container py-4">
+		<div class="card">
+			<div class="card-header">
+				<h3><i class="fas fa-ticket-alt me-2"></i>Booking Details</h3>
+			</div>
+			<div class="card-body">
+				<div class="row mb-4">
+					<div class="col-md-6">
+						<h4>Bus Information</h4>
+						<p><strong>Bus Number:</strong> <span th:text="${booking.bus.busNumber}"></span></p>
+						<p><strong>Route:</strong> <span
+								th:text="${booking.bus.source} + ' → ' + ${booking.bus.destination}"></span></p>
+						<p><strong>Departure:</strong>
+							<span
+								th:text="${#temporals.format(booking.bus.departureTime, 'EEEE, MMMM dd, yyyy hh:mm a')}"></span>
+						</p>
+					</div>
+					<div class="col-md-6">
+						<h4>Booking Information</h4>
+						<p><strong>Booking ID:</strong> <span th:text="${booking.id}"></span></p>
+						<p><strong>Booking Date:</strong>
+							<span th:text="${#temporals.format(booking.bookingDate, 'MMMM dd, yyyy')}"></span>
+						</p>
+						<p><strong>Status:</strong>
+							<span th:classappend="${booking.status == 'CONFIRMED'} ? 'badge bg-success' : 
+                                               ${booking.status == 'WAITING'} ? 'badge bg-warning text-dark' : 
+                                               'badge bg-danger'" th:text="${booking.status}"></span>
+						</p>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<h4>Passenger Details</h4>
+						<p><strong>Name:</strong> <span th:text="${booking.passengerName}"></span></p>
+						<p><strong>Email:</strong> <span th:text="${booking.passengerEmail}"></span></p>
+						<p><strong>Phone:</strong> <span th:text="${booking.passengerPhone}"></span></p>
+						<p><strong>Seats:</strong> <span th:text="${booking.numberOfSeats}"></span></p>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer">
+				<a th:href="@{/bookings}" class="btn btn-secondary">
+					<i class="fas fa-arrow-left me-1"></i> Back to My Bookings
+				</a>
+				<button th:if="${booking.status == 'PENDING'}" 
+				        class="btn btn-danger float-end" 
+				        id="cancelBookingBtn_${booking.id}" 
+				        data-booking-id="${booking.id}">
+				    <i class="fas fa-times me-1"></i> Cancel Booking
+				</button>
+
+				<script>
+				    document.addEventListener('DOMContentLoaded', function() {
+				        // Select all buttons with a specific id pattern
+				        const cancelButtons = document.querySelectorAll('[id^="cancelBookingBtn_"]');
+				        
+				        cancelButtons.forEach(button => {
+				            button.addEventListener('click', function() {
+				                const bookingId = button.getAttribute('data-booking-id');
+				                cancelBooking(bookingId);
+				            });
+				        });
+				    });
+				</script>
+
+			</div>
+		</div>
+	</div>
+
+	<script>
+		function cancelBooking(bookingId) {
+			if (confirm('Are you sure you want to cancel this booking?')) {
+				fetch('/bookings/' + bookingId + '/cancel', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					}
+				})
+					.then(response => {
+						if (response.ok) {
+							window.location.href = '/bookings';
+						} else {
+							alert('Failed to cancel booking');
+						}
+					});
+			}
+		}
+	</script>
+</body>
+
+</html>
